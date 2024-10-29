@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点单系统</title>
+    <link rel="stylesheet" href="./css/index.css">
+    <link rel="stylesheet" href="./css/common.css">
+</head>
+
+<body>
+    <div id="app">
+        <el-container>
+            <!-- 顶部菜单栏 -->
+            <el-header>
+                <h2 style="text-align: center;">零落闲庭点单系统</h2>
+            </el-header>
+            <el-main>
+                <el-row>
+                    <el-carousel style="width: 100%;" trigger="click" height="150px">
+                        <el-carousel-item v-for="item in 4" :key="item">
+                            <h3 class="small justify-center" text="2xl">{{ item }}</h3>
+                        </el-carousel-item>
+                    </el-carousel>
+                </el-row>
+                <el-row>
+                    <!-- 菜品展示区 -->
+                    <el-col :span="24" id="menu">
+                        <h3>菜单</h3>
+                        <el-table :data="dishes">
+                            <el-table-column prop="name" label="菜名"></el-table-column>
+                            <el-table-column prop="price" label="价格"></el-table-column>
+                            <el-table-column label="操作">
+                                <template #default="scope">
+                                    <el-button type="primary" size="small" @click="addToOrder(scope.row)">选择</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </el-col>
+                </el-row>
+                <!-- 点单区 -->
+                <el-row style="margin-top: 20px;">
+                    <el-col :span="24" id="order">
+                        <h3>已点菜品</h3>
+                        <el-table :data="order">
+                            <el-table-column prop="name" label="菜名"></el-table-column>
+                            <el-table-column prop="price" label="价格"></el-table-column>
+                            <el-table-column label="操作">
+                                <template #default="scope">
+                                    <el-button type="danger" size="small"
+                                        @click="removeFromOrder(scope.row)">移除</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <p>总价：{{ totalPrice }} 元</p>
+                    </el-col>
+                </el-row>
+                <!-- 菜品管理区 -->
+                <el-row style="margin-top: 20px;margin-bottom: 20px;">
+                    <el-col :span="24">
+                        <h3>上传新菜品</h3>
+                        <el-form :model="newDish">
+                            <el-form-item label="菜名">
+                                <el-input v-model="newDish.name"></el-input>
+                            </el-form-item>
+                            <el-form-item label="价格">
+                                <el-input v-model="newDish.price" type="number"></el-input>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="success" @click="uploadDish">上传菜品</el-button>
+                            </el-form-item>
+                        </el-form>
+                    </el-col>
+                </el-row>
+                <el-row
+                    style="position: fixed; bottom: 0; left: 0; width:100vw; text-align: center; background-color: #f5f5f5; padding: 10px;z-index: 999; display: flex; justify-content: center;">
+                    <el-button-group>
+                        <el-button type="primary" @click="scrollTo('menu')">菜单选菜</el-button>
+                        <el-button type="primary" @click="scrollTo('order')">
+                            已点菜品
+                        </el-button>
+                    </el-button-group>
+                </el-row>
+            </el-main>
+        </el-container>
+    </div>
+
+    <!-- Vue 和 Element UI CDN -->
+    <script src="./js/vue.global.js"></script>
+    <script src="./js/index.full.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    dishes: [
+                        { name: "鱼香肉丝", price: 25 },
+                        { name: "宫保鸡丁", price: 30 },
+                        { name: "麻婆豆腐", price: 20 }
+                    ],
+                    order: [],
+                    newDish: {
+                        name: "",
+                        price: null
+                    }
+                };
+            },
+            computed: {
+                totalPrice() {
+                    return this.order.reduce((sum, dish) => parseInt(sum) + parseInt(dish.price), 0);
+                }
+            },
+            methods: {
+                scrollTo(sectionId) {
+                    const element = document.getElementById(sectionId);
+                    if (element) {
+                        element.scrollIntoView({ behavior: "smooth" });
+                    }
+                },
+                addToOrder(dish) {
+                    this.order.push(dish);
+                },
+                removeFromOrder(dish) {
+                    const index = this.order.indexOf(dish);
+                    if (index > -1) {
+                        this.order.splice(index, 1);
+                    }
+                },
+                uploadDish() {
+                    if (this.newDish.name && this.newDish.price) {
+                        this.dishes.push({ ...this.newDish });
+                        this.newDish.name = "";
+                        this.newDish.price = null;
+                    } else {
+                        this.$message.error("请填写完整的菜品信息！");
+                    }
+                }
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+
+</html>
