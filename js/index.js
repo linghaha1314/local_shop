@@ -48,7 +48,8 @@ createApp({
                     label: '已完成',
                 },
             ],
-            valueStatus: 0
+            valueStatus: 0,
+            printInfo: {}
         };
     },
     computed: {
@@ -193,6 +194,19 @@ createApp({
 
             // 4. 生成并下载Excel文件
             XLSX.writeFile(wb, fileName);
+        },
+        printText(data) {
+            // const printContent = document.getElementById('print-content').innerHTML;
+            const newWindow = window.open('', '', 'height=600,width=800');
+            newWindow.document.write('<html><head><title>用餐订单</title>');
+            newWindow.document.write('</head><body>');
+            newWindow.document.write(`<div id="print-content" style="border: 1px solid #000;">
+                <p>${data.id}号</p>
+                <p>${data.name}</p>
+            </div>`);
+            newWindow.document.write('</body></html>');
+            newWindow.document.close();
+            newWindow.print();
         }
         // updateDish(ku,data,target){
         //     db.open().then(() => {

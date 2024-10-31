@@ -119,19 +119,19 @@
                                 <el-button size="small" v-else type="success" round>完成</el-button>
                             </p>
                             <template #footer>
-                                <div style="display: flex;flex-direction: column;">
+                                <div style="text-align:right">
 
                                     <el-popconfirm title="确认操作码？" confirm-button-text="确认" cancel-button-text="取消"
                                         @confirm="overOrder(o)">
                                         <template #reference>
-                                            <el-button v-if="o.status===0" style="margin-left: 12px; margin-bottom: 4px"
-                                                type="success" size="small">完成</el-button>
+                                            <el-button v-if="o.status===0" type="success" size="small">完成</el-button>
                                         </template>
                                     </el-popconfirm>
-                                    <el-popconfirm title="确认操作码？" confirm-button-text="确认" cancel-button-text="取消">
+                                    <el-popconfirm title="确认操作码？" confirm-button-text="确认" cancel-button-text="取消"
+                                    @confirm="printText(o)"
+                                    >
                                         <template #reference>
-                                            <el-button v-if="o.status===0" type="primary" size="small"
-                                                @click="updateDialog(scope.row)">打印</el-button>
+                                            <el-button v-if="o.status===0" type="primary" size="small">打印</el-button>
                                         </template>
                                     </el-popconfirm>
                                 </div>
@@ -184,6 +184,11 @@
                     </div>
                 </template>
             </el-dialog>
+            <div id="print-content" style="display: none;">
+                <h2>用餐订单</h2>
+                <p>{{this.printInfo.id}}号</p>
+                <p>{{this.printInfo.name}}</p>
+            </div>
         </el-container>
     </div>
 
