@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>点单系统</title>
+    <link rel="icon" href="./img/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="./css/index.css">
     <link rel="stylesheet" href="./css/common.css">
 </head>
@@ -19,18 +20,21 @@
             <el-main>
                 <el-row>
                     <el-carousel style="width: 90vw; height: 30vh" trigger="click">
-                        <el-carousel-item>
-                            <img style="width: 90vw; height: 30vh" src="./img/douhuayu.jpg" alt="douhuayu">
+                        <el-carousel-item v-for="item in bannerInfo">
+<!--                            <img style="width: 90vw; height: 30vh" src="./img/douhuayu.jpg" alt="douhuayu">-->
+                            <div class="banner-box" :style="bannerStyle(item)">
+
+                            </div>
                         </el-carousel-item>
-                        <el-carousel-item>
-                            <img style="width: 90vw; height: 30vh" src="./img/laziji.jpg" alt="laziji">
-                        </el-carousel-item>
-                        <el-carousel-item>
-                            <img style="width: 90vw; height: 30vh" src="./img/koushuiji.jpg" alt="koushuiji">
-                        </el-carousel-item>
-                        <el-carousel-item>
-                            <img style="width: 90vw; height: 30vh" src="./img/mapodoufu.jpg" alt="mapodoufu">
-                        </el-carousel-item>
+<!--                        <el-carousel-item>-->
+<!--                            <img style="width: 90vw; height: 30vh" src="./img/laziji.jpg" alt="laziji">-->
+<!--                        </el-carousel-item>-->
+<!--                        <el-carousel-item>-->
+<!--                            <img style="width: 90vw; height: 30vh" src="./img/koushuiji.jpg" alt="koushuiji">-->
+<!--                        </el-carousel-item>-->
+<!--                        <el-carousel-item>-->
+<!--                            <img style="width: 90vw; height: 30vh" src="./img/mapodoufu.jpg" alt="mapodoufu">-->
+<!--                        </el-carousel-item>-->
                     </el-carousel>
                 </el-row>
                 <el-row>
@@ -104,7 +108,9 @@
                             <el-button type="primary" size="small"
                                 @click="exportToExcel(goods, '订单表')">导出Excel</el-button>
                         </div>
-
+                        <div v-if="goods.length === 0" style="text-align: center;color: #cccccc">
+                            没有订单哟~
+                        </div>
                         <el-card v-for="o in goods" :key="o" style="margin-bottom: 8px;">
                             <template #header>
                                 <div class="card-header">
@@ -128,8 +134,7 @@
                                         </template>
                                     </el-popconfirm>
                                     <el-popconfirm title="确认操作码？" confirm-button-text="确认" cancel-button-text="取消"
-                                    @confirm="printText(o)"
-                                    >
+                                        @confirm="printText(o)">
                                         <template #reference>
                                             <el-button v-if="o.status===0" type="primary" size="small">打印</el-button>
                                         </template>
@@ -140,17 +145,55 @@
 
                     </el-col>
                 </el-row>
-
+<!--                <div class="demo-image__error">-->
+<!--                    <div class="block">-->
+<!--                        <span class="demonstration">默认</span>-->
+<!--                        <el-image :src="srcImg"/>-->
+<!--                    </div>-->
+<!--                    <div class="block">-->
+<!--                        <span class="demonstration">失败</span>-->
+<!--                        <el-image>-->
+<!--                            <template #error>-->
+<!--                                <div class="image-slot">-->
+<!--                                    <el-image src="./img/douhuayu.jpg" alt="没有图片"/>-->
+<!--                                </div>-->
+<!--                            </template>-->
+<!--                        </el-image>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <el-upload-->
+<!--                        v-model="fileList"-->
+<!--                        class="upload-demo"-->
+<!--                        action="#"-->
+<!--                        :on-preview="handlePreview"-->
+<!--                        :on-remove="handleRemove"-->
+<!--                        :before-upload="uploadFn"-->
+<!--                        list-type="picture"-->
+<!--                >-->
+<!--                    <el-button type="primary">点击上传</el-button>-->
+<!--                    <template #tip>-->
+<!--                        <div class="el-upload__tip">-->
+<!--                            图片不能超过 500kb-->
+<!--                        </div>-->
+<!--                    </template>-->
+<!--                </el-upload>-->
+                <div style="margin-bottom: 60px;">
+                </div>
+                <el-dialog v-model="dialogVisible">
+                    <img w-full :src="dialogImageUrl" alt="Preview Image" />
+                </el-dialog>
                 <el-row
                     style="position: fixed; bottom: 0; left: 0; width:100vw; text-align: center; background-color: #f5f5f5; padding: 10px;z-index: 999; display: flex; justify-content: center;">
                     <el-button-group>
                         <el-button type="primary" @click="scrollTo('menu')">菜单选菜</el-button>
-                        <el-button type="primary" @click="scrollTo('order')">
-                            已选菜品
-                        </el-button>
                         <el-button type="primary" @click="scrollTo('goods')">
                             已点订单
                         </el-button>
+                        <el-badge :value="order.length" class="item" color="green">
+                            <el-button type="primary" @click="scrollTo('order')">
+                                已选菜品
+                            </el-button>
+                        </el-badge>
                         <el-button v-if="isLogin" type="primary" @click="dialogFormVisible = true">
                             添加菜品
                         </el-button>
@@ -184,11 +227,6 @@
                     </div>
                 </template>
             </el-dialog>
-            <div id="print-content" style="display: none;">
-                <h2>用餐订单</h2>
-                <p>{{this.printInfo.id}}号</p>
-                <p>{{this.printInfo.name}}</p>
-            </div>
         </el-container>
     </div>
 
@@ -198,6 +236,7 @@
     <script src="./js/index.iife.min.js"></script>
     <script src="./js/dexie.js"></script>
     <script src="./js/xlsx.full.min.js"></script>
+
     <script src="./js/common.js"></script>
 
     <script src="./js/index.js"></script>

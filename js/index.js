@@ -2,17 +2,15 @@ const db = new Dexie('my_database');
 // const XLSX = globalThis.XLSX;
 
 
-
-
-const { createApp } = Vue;
-
-createApp({
+const {createApp} = Vue;
+const { ElMessage } = ElementPlus;
+const app = createApp({
     data() {
         return {
             dishes: [
-                { name: "鱼香肉丝", price: 25 },
-                { name: "宫保鸡丁", price: 30 },
-                { name: "麻婆豆腐", price: 20 }
+                {name: "鱼香肉丝", price: 25},
+                {name: "宫保鸡丁", price: 30},
+                {name: "麻婆豆腐", price: 20}
             ],
             order: [],
             goods: [],
@@ -49,7 +47,26 @@ createApp({
                 },
             ],
             valueStatus: 0,
-            printInfo: {}
+            printInfo: {},
+            srcImg: 'blob:http://localhost:63342/b4c31491-b1d2-411f-a946-effc800476e2',
+            fileList: [],
+            dialogImageUrl: '',
+            dialogVisible: false,
+            images: [],
+            bannerInfo: [
+                {
+                    img: './img/douhuayu.jpg'
+                },
+                {
+                    img: './img/laziji.jpg'
+                },
+                {
+                    img: './img/koushuiji.jpg'
+                },
+                {
+                    img: './img/mapodoufu.jpg'
+                }
+            ]
         };
     },
     computed: {
@@ -58,10 +75,40 @@ createApp({
         }
     },
     methods: {
+        handlePreview(file) {
+            console.log(file, this.fileList,777)
+        },
+        bannerStyle(data) {
+            return {
+                'background-image': `url(${data.img})`,
+                'background-size': 'contain',/* 确保图片完整显示 */
+                'background-repeat': 'repeat',/* 平铺图片以填满背景 */
+                'background-position': 'center',/* 将图片居中放置（在平铺之前） */
+            }
+        },
+        async uploadFn(data) {
+            // console.log(data, 666)
+            // this.srcImg = data.url;
+            const file = data;
+            if (file) {
+                // 读取文件为Blob
+                const blob = file;
+                // 存储到IndexedDB
+                await db.images.add({
+                    name: file.name,
+                    data: blob
+                });
+            }
+        },
+        handlePictureCardPreview(uploadFile) {
+            console.log(uploadFile);
+            this.dialogImageUrl = uploadFile.url;
+            this.dialogVisible = true
+        },
         scrollTo(sectionId) {
             const element = document.getElementById(sectionId);
             if (element) {
-                element.scrollIntoView({ behavior: "smooth" });
+                element.scrollIntoView({behavior: "smooth"});
             }
         },
         addToOrder(dish) {
@@ -76,14 +123,14 @@ createApp({
                     return db[ku].bulkPut(data);
                 }
             }).then(() => {
-                if(target === 'goods'){
+                if (target === 'goods') {
                     return db[ku].where('status').equals(this.valueStatus).limit(10).toArray();
-                }else{
+                } else {
                     return db[ku].reverse().toArray();
                 }
             }).then(res => {
                 this[target] = [...res]
-                
+
                 if (data[0].id) {
                     this.dialogFormVisible = false
                 }
@@ -108,8 +155,16 @@ createApp({
         },
         uploadDish() {
             if (this.newDish.name && this.newDish.price) {
-                this.newDish.created = new Date();
-                this.addItme('menu', [{ ...this.newDish }], 'dishes')
+                this.newDish.created = new Date().toLocaleString('zh-CN', {
+                    year: '2-digit',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false,
+                }).replace(/\//g, '-');
+                this.addItme('menu', [{...this.newDish}], 'dishes')
                 this.newDish.name = "";
                 this.newDish.price = null;
                 delete this.newDish.id
@@ -118,7 +173,7 @@ createApp({
             }
         },
         updateDialog(data) {
-            this.newDish = { ...data }
+            this.newDish = {...data}
             this.dialogFormVisible = true
         },
         getMenu(ku = 'menu', target = 'dishes') {
@@ -153,18 +208,26 @@ createApp({
                 name: '',
                 totalPrice: 0,
                 status: 0,
-                created: new Date()
+                created: new Date().toLocaleString('zh-CN', {
+                    year: '2-digit',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false,
+                }).replace(/\//g, '-')
             }
             this.order.forEach(element => {
                 obj.name += `${element.name}(${element.price}),`
             });
             obj.totalPrice = this.order.reduce((sum, dish) => parseInt(sum) + parseInt(dish.price), 0);
-            this.addItme('goods', [{ ...obj }], 'goods')
+            this.addItme('goods', [{...obj}], 'goods')
             this.order = []
         },
         overOrder(data) {
             data.status = 1
-            this.addItme('goods', [{ ...data }], 'goods')
+            this.addItme('goods', [{...data}], 'goods')
         },
         loginManage() {
             this.count++
@@ -207,7 +270,7 @@ createApp({
             newWindow.document.write('</body></html>');
             newWindow.document.close();
             newWindow.print();
-        }
+        },
         // updateDish(ku,data,target){
         //     db.open().then(() => {
         //         return db[ku].update(data.id,data);
@@ -218,44 +281,34 @@ createApp({
         //         console.log(this[target], 9988)
         //     })
         // }
+        getImageData() {
+            db.images.toArray().then(res => {
+                console.log(res, 999)
+                if (res.length !== 0) {
+
+                    this.srcImg = URL.createObjectURL(res[0].data)
+                }
+            })
+        },
+        handleRemove(data){
+            console.log(data.name, '删除图片')
+            db.images.delete(data.name)
+        }
     },
     mounted() {
+        // this.$message({
+        //     message: '这是一条消息',
+        //     type: 'success'
+        // });
         db.version(1).stores({
-            menu: '++id,name,price,status,created',
-            goods: '++id,name,totalPrice,status,created'
+            menu: '++id,name,price,status,created,dbImg,onlineImg',
+            goods: '++id,name,totalPrice,status,created',
+            images: 'name,data'
         })
         this.getMenu()
         this.getGoods('goods', 'goods')
-
-        // db.open().then(function () {
-
-        //     this.dishes = db.menu
-        //     .where('price')
-        //     .between(40, 65)
-        //     .toArray();
-        //     // return db.menu.add({ name: "鱼香肉丝", price: 42 });
-
-        // }).then(function () {
-
-        //     return db.menu
-        //         .where('price')
-        //         .between(40, 65)
-        //         .toArray();
-
-        // }).then(function (menu) {
-
-        //     console.log(menu, 8888)
-
-        // }).then(function () {
-        //     return db.delete(); // So you can experiment again and again...
-        // }).catch(Dexie.MissingAPIError, function (e) {
-        //     console.log("Couldn't find indexedDB API");
-        // }).catch('SecurityError', function (e) {
-        //     console.log("SeurityError - This browser doesn't like fiddling with indexedDB.");
-        //     console.log("If using Safari, this is because jsfiddle runs its samples within an iframe");
-        //     console.log("Go run some samples instead at: https://github.com/dfahlander/Dexie.js/wiki/Samples");
-        // }).catch(function (e) {
-        //     console.log(e);
-        // });
+        // this.getImageData()
     },
 }).use(ElementPlus).mount('#app');
+// 将 ElMessage 绑定到全局属性
+// app.config.globalProperties.$message = ElMessage;
