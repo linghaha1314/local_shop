@@ -8,6 +8,7 @@
     <link rel="icon" href="./img/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="./css/index.css">
     <link rel="stylesheet" href="./css/common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body>
@@ -15,40 +16,44 @@
         <el-container>
             <!-- 顶部菜单栏 -->
             <el-header>
-                <h2 style="text-align: center;" @click="loginManage">零落闲庭点单系统</h2>
+                <h2 style="text-align: center;" class="text-3xl font-bold underline m-3" @click="loginManage">零落闲庭点单系统</h2>
             </el-header>
             <el-main>
                 <el-row>
-                    <el-carousel style="width: 90vw; height: 30vh" trigger="click">
+                    <el-carousel style="width: 90vw; height: 30vh; border-radius: 8px;margin-top: 34px;"
+                        trigger="click">
                         <el-carousel-item v-for="item in bannerInfo">
-<!--                            <img style="width: 90vw; height: 30vh" src="./img/douhuayu.jpg" alt="douhuayu">-->
+                            <!--                            <img style="width: 90vw; height: 30vh" src="./img/douhuayu.jpg" alt="douhuayu">-->
                             <div class="banner-box" :style="bannerStyle(item)">
 
                             </div>
                         </el-carousel-item>
-<!--                        <el-carousel-item>-->
-<!--                            <img style="width: 90vw; height: 30vh" src="./img/laziji.jpg" alt="laziji">-->
-<!--                        </el-carousel-item>-->
-<!--                        <el-carousel-item>-->
-<!--                            <img style="width: 90vw; height: 30vh" src="./img/koushuiji.jpg" alt="koushuiji">-->
-<!--                        </el-carousel-item>-->
-<!--                        <el-carousel-item>-->
-<!--                            <img style="width: 90vw; height: 30vh" src="./img/mapodoufu.jpg" alt="mapodoufu">-->
-<!--                        </el-carousel-item>-->
+                        <!--                        <el-carousel-item>-->
+                        <!--                            <img style="width: 90vw; height: 30vh" src="./img/laziji.jpg" alt="laziji">-->
+                        <!--                        </el-carousel-item>-->
+                        <!--                        <el-carousel-item>-->
+                        <!--                            <img style="width: 90vw; height: 30vh" src="./img/koushuiji.jpg" alt="koushuiji">-->
+                        <!--                        </el-carousel-item>-->
+                        <!--                        <el-carousel-item>-->
+                        <!--                            <img style="width: 90vw; height: 30vh" src="./img/mapodoufu.jpg" alt="mapodoufu">-->
+                        <!--                        </el-carousel-item>-->
                     </el-carousel>
                 </el-row>
+                <div class="line">
+
+                </div>
                 <el-row>
                     <!-- 菜品展示区 -->
                     <el-col :span="24" id="menu">
-                        <h3>菜单</h3>
-                        <el-table :data="dishes" empty-text="没有菜品哟~">
+                        <h3  class="text-2xl font-bold">菜单</h3>
+                        <el-table style="border-radius: 8px;" :data="dishes" empty-text="没有菜品哟~">
                             <el-table-column prop="name" label="菜名"></el-table-column>
                             <el-table-column prop="price" label="价格"></el-table-column>
                             <el-table-column prop="status" label="状态">
                                 <template #default="scope">
                                     <el-button size="small" v-if="scope.row.status===false" type="danger"
-                                        round>已售罄</el-button>
-                                    <el-button size="small" v-else type="success" round>销售中</el-button>
+                                        round>卖完</el-button>
+                                    <el-button size="small" v-else type="success" round>热卖</el-button>
                                 </template>
                             </el-table-column>
                             <el-table-column label="操作">
@@ -65,11 +70,14 @@
                         </el-table>
                     </el-col>
                 </el-row>
+                <div class="line">
+
+                </div>
                 <!-- 点单区 -->
                 <el-row style="margin-top: 20px;margin-bottom: 40px;">
                     <el-col :span="24" id="order">
-                        <h3>已点菜品</h3>
-                        <el-table :data="order" empty-text="没有点菜哟~">
+                        <h3  class="text-2xl font-bold">已点菜品</h3>
+                        <el-table style="border-radius: 8px;" :data="order" empty-text="没有点菜哟~">
                             <el-table-column prop="name" label="菜名"></el-table-column>
                             <el-table-column prop="price" label="价格"></el-table-column>
                             <el-table-column label="操作">
@@ -92,10 +100,12 @@
                         </div>
                     </el-col>
                 </el-row>
+                <div class="line">
+                </div>
                 <!-- 定单区 -->
                 <el-row style="margin-top: 20px;margin-bottom: 40px;">
                     <el-col :span="24" id="goods">
-                        <h3>订单</h3>
+                        <h3  class="text-2xl font-bold">订单</h3>
 
                         <div style="display: flex; justify-content: right; align-items: center; margin-bottom: 12px;">
 
@@ -145,38 +155,38 @@
 
                     </el-col>
                 </el-row>
-<!--                <div class="demo-image__error">-->
-<!--                    <div class="block">-->
-<!--                        <span class="demonstration">默认</span>-->
-<!--                        <el-image :src="srcImg"/>-->
-<!--                    </div>-->
-<!--                    <div class="block">-->
-<!--                        <span class="demonstration">失败</span>-->
-<!--                        <el-image>-->
-<!--                            <template #error>-->
-<!--                                <div class="image-slot">-->
-<!--                                    <el-image src="./img/douhuayu.jpg" alt="没有图片"/>-->
-<!--                                </div>-->
-<!--                            </template>-->
-<!--                        </el-image>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--                <el-upload-->
-<!--                        v-model="fileList"-->
-<!--                        class="upload-demo"-->
-<!--                        action="#"-->
-<!--                        :on-preview="handlePreview"-->
-<!--                        :on-remove="handleRemove"-->
-<!--                        :before-upload="uploadFn"-->
-<!--                        list-type="picture"-->
-<!--                >-->
-<!--                    <el-button type="primary">点击上传</el-button>-->
-<!--                    <template #tip>-->
-<!--                        <div class="el-upload__tip">-->
-<!--                            图片不能超过 500kb-->
-<!--                        </div>-->
-<!--                    </template>-->
-<!--                </el-upload>-->
+                <!--                <div class="demo-image__error">-->
+                <!--                    <div class="block">-->
+                <!--                        <span class="demonstration">默认</span>-->
+                <!--                        <el-image :src="srcImg"/>-->
+                <!--                    </div>-->
+                <!--                    <div class="block">-->
+                <!--                        <span class="demonstration">失败</span>-->
+                <!--                        <el-image>-->
+                <!--                            <template #error>-->
+                <!--                                <div class="image-slot">-->
+                <!--                                    <el-image src="./img/douhuayu.jpg" alt="没有图片"/>-->
+                <!--                                </div>-->
+                <!--                            </template>-->
+                <!--                        </el-image>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+                <!--                <el-upload-->
+                <!--                        v-model="fileList"-->
+                <!--                        class="upload-demo"-->
+                <!--                        action= "#"-->
+                <!--                        :on-preview="handlePreview"-->
+                <!--                        :on-remove="handleRemove"-->
+                <!--                        :before-upload="uploadFn"-->
+                <!--                        list-type="picture"-->
+                <!--                >-->
+                <!--                    <el-button type="primary">点击上传</el-button>-->
+                <!--                    <template #tip>-->
+                <!--                        <div class="el-upload__tip">-->
+                <!--                            图片不能超过 500kb-->
+                <!--                        </div>-->
+                <!--                    </template>-->
+                <!--                </el-upload>-->
                 <div style="margin-bottom: 60px;">
                 </div>
                 <el-dialog v-model="dialogVisible">

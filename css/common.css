@@ -1,9 +1,20 @@
+body {
+    background: repeating-linear-gradient(45deg, #92c9b1, #92c9b1 20px, #b3e0d2 20px, #b3e0d2 40px);
+}
+
 .bg {
-    background-color: #f8f8f8
+    background-color: #f8f8f8;
 }
 
 .demonstration {
     color: var(--el-text-color-secondary);
+}
+
+.line {
+    border-top: 2px dashed #cccccc;
+    margin: 24px 0;
+    border-bottom: 2px dashed #cccccc;
+    height: 6px;
 }
 
 .el-carousel__item h3 {
@@ -21,10 +32,47 @@
 .el-carousel__item:nth-child(2n + 1) {
     background-color: #d3dce6;
 }
+
 .center {
     text-align: center;
     border: 1px solid #000;
 }
-.banner-box{
-    width: 90vw; height: 30vh
+
+.banner-box {
+    width: 90vw;
+    height: 30vh
+}
+
+/* ================================ */
+.container {
+    width: 100vw;
+    height: 100vh;
+    background: lightblue;
+    position: relative;
+    overflow: hidden;
+}
+
+.container::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, #3498db 10%, transparent 20%),
+        radial-gradient(circle, transparent 10%, #3498db 20%);
+    background-size: 30px 30px;
+    /* Adjust the size of the pattern */
+    animation: moveBackground 8s linear infinite;
+    /* Adjust the animation duration and timing function */
+}
+
+@keyframes moveBackground {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    100% {
+        transform: translate(20%, 20%);
+    }
 }

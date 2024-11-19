@@ -3,7 +3,7 @@ const db = new Dexie('my_database');
 
 
 const {createApp} = Vue;
-const { ElMessage } = ElementPlus;
+const {ElMessage} = ElementPlus;
 const app = createApp({
     data() {
         return {
@@ -76,7 +76,7 @@ const app = createApp({
     },
     methods: {
         handlePreview(file) {
-            console.log(file, this.fileList,777)
+            console.log(file, this.fileList, 777)
         },
         bannerStyle(data) {
             return {
@@ -290,7 +290,7 @@ const app = createApp({
                 }
             })
         },
-        handleRemove(data){
+        handleRemove(data) {
             console.log(data.name, '删除图片')
             db.images.delete(data.name)
         }
