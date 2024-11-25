@@ -16,7 +16,8 @@
         <el-container>
             <!-- 顶部菜单栏 -->
             <el-header>
-                <h2 style="text-align: center;" class="text-3xl font-bold underline m-3" @click="loginManage">零落闲庭点单系统</h2>
+                <h2 style="text-align: center;" class="text-3xl font-bold underline m-3" @click="loginManage">零落闲庭点单系统
+                </h2>
             </el-header>
             <el-main>
                 <el-row>
@@ -45,10 +46,18 @@
                 <el-row>
                     <!-- 菜品展示区 -->
                     <el-col :span="24" id="menu">
-                        <h3  class="text-2xl font-bold">菜单</h3>
+                        <h3 class="text-2xl font-bold">菜单</h3>
                         <el-table style="border-radius: 8px;" :data="dishes" empty-text="没有菜品哟~">
                             <el-table-column prop="name" label="菜名"></el-table-column>
-                            <el-table-column prop="price" label="价格"></el-table-column>
+                            <el-table-column prop="price" label="价格">
+                                <template #default="scope">
+                                    <div style="display: flex; align-items: center">
+                                        ¥
+                                        <span>{{ scope.row.price }}</span>
+                                        元
+                                    </div>
+                                </template>
+                            </el-table-column>
                             <el-table-column prop="status" label="状态">
                                 <template #default="scope">
                                     <el-button size="small" v-if="scope.row.status===false" type="danger"
@@ -62,8 +71,16 @@
                                         <el-button :disabled="!scope.row.status"
                                             style="margin-left: 12px; margin-bottom: 4px" type="primary" size="small"
                                             @click="addToOrder(scope.row)">选择</el-button>
-                                        <el-button v-if="isLogin" type="primary" size="small"
-                                            @click="updateDialog(scope.row)">修改</el-button>
+                                        <el-button style="margin-left: 12px; margin-bottom: 4px" v-if="isLogin"
+                                            type="primary" size="small" @click="updateDialog(scope.row)">修改</el-button>
+
+                                        <el-popconfirm title="确认操作码？" confirm-button-text="确认" cancel-button-text="取消"
+                                            @confirm="delOrder(scope.row.id)">
+                                            <template #reference>
+                                                <el-button v-if="isLogin" type="warning" size="small">删除</el-button>
+                                            </template>
+                                        </el-popconfirm>
+
                                     </div>
                                 </template>
                             </el-table-column>
@@ -76,7 +93,7 @@
                 <!-- 点单区 -->
                 <el-row style="margin-top: 20px;margin-bottom: 40px;">
                     <el-col :span="24" id="order">
-                        <h3  class="text-2xl font-bold">已点菜品</h3>
+                        <h3 class="text-2xl font-bold">已点菜品</h3>
                         <el-table style="border-radius: 8px;" :data="order" empty-text="没有点菜哟~">
                             <el-table-column prop="name" label="菜名"></el-table-column>
                             <el-table-column prop="price" label="价格"></el-table-column>
@@ -96,7 +113,6 @@
                                     <el-button type="success">确认下单</el-button>
                                 </template>
                             </el-popconfirm>
-
                         </div>
                     </el-col>
                 </el-row>
@@ -105,10 +121,16 @@
                 <!-- 定单区 -->
                 <el-row style="margin-top: 20px;margin-bottom: 40px;">
                     <el-col :span="24" id="goods">
-                        <h3  class="text-2xl font-bold">订单</h3>
+                        <h3 class="text-2xl font-bold">订单</h3>
 
                         <div style="display: flex; justify-content: right; align-items: center; margin-bottom: 12px;">
-
+                            <el-input v-model="input4" style="width:40%;margin-right: 8px;" placeholder="序号" @change="queryData">
+                                <template #prefix>
+                                    <div>
+                                        查询
+                                    </div>
+                                </template>
+                            </el-input>
                             <el-select v-model="valueStatus" size="small" placeholder="选择查看"
                                 style="width: 100px; margin-right: 8px;" @change="getGoods('goods', 'goods')">
                                 <el-option v-for="item in options" :key="item.value" :label="item.label"
@@ -128,7 +150,7 @@
                                 </div>
                             </template>
                             <p class="text item">序号: {{ o.id }}</p>
-                            <p class="text item">总价: {{ o.totalPrice }}</p>
+                            <p class="text item">总价: ¥{{ o.totalPrice }}元</p>
                             <p class="text item">订餐时间: {{ o.created }}</p>
                             <p class="text item">状态:
                                 <el-button size="small" v-if="o.status===0" type="danger" round>烹饪中</el-button>

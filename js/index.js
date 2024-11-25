@@ -1,16 +1,92 @@
 const db = new Dexie('my_database');
 // const XLSX = globalThis.XLSX;
+db.version(1).stores({
+    menu: '++id,name,price,status,created,dbImg,onlineImg',
+    goods: '++id,name,totalPrice,status,created',
+    images: 'name,data'
+})
 
+const dbUtils = {
+    // 添加数据
+    add: async function (tableName, data) {
+        try {
+            const id = await db[tableName].add(data);
+            console.log(`Added item with id ${id}`);
+            return id;
+        } catch (error) {
+            console.error("Add failed: ", error);
+        }
+    },
+    // 批量添加
+    bulkAdd: async function (tableName, dataArray) {
+        try {
+            const keys = await db[tableName].bulkAdd(dataArray);
+            console.log("Bulk add successful: ", keys);
+            return keys;
+        } catch (error) {
+            console.error("Bulk add failed: ", error);
+        }
+    },
+    // 删除数据
+    delete: async function (tableName, id) {
+        try {
+            await db[tableName].delete(id);
+            console.log(`Deleted item with id ${id}`);
+        } catch (error) {
+            console.error("Delete failed: ", error);
+        }
+    },
+    // 更新数据
+    update: async function (tableName, id, updatedData) {
+        try {
+            const updated = await db[tableName].update(id, updatedData);
+            if (updated) {
+                console.log(`Updated item with id ${id}`);
+            } else {
+                console.log(`No item found with id ${id}`);
+            }
+        } catch (error) {
+            console.error("Update failed: ", error);
+        }
+    },
+    // 查询单个
+    get: async function (tableName, id) {
+        try {
+            const item = await db[tableName].get(id);
+            return item;
+        } catch (error) {
+            console.error("Get failed: ", error);
+        }
+    },
+    // 条件查询
+    where: async function (tableName, field, value) {
+        try {
+            const items = await db[tableName].where(field).equals(value).toArray();
+            return items;
+        } catch (error) {
+            console.error("Where failed: ", error);
+        }
+    },
+    // 查询所有
+    getAll: async function (tableName) {
+        try {
+            const items = await db[tableName].toArray();
+            return items;
+        } catch (error) {
+            console.error("Get all failed: ", error);
+        }
+    },
+};
 
-const {createApp} = Vue;
-const {ElMessage} = ElementPlus;
+const { createApp } = Vue;
+const { ElMessage } = ElementPlus;
 const app = createApp({
     data() {
         return {
             dishes: [
-                {name: "鱼香肉丝", price: 25},
-                {name: "宫保鸡丁", price: 30},
-                {name: "麻婆豆腐", price: 20}
+                { name: "鱼香肉丝", price: 25 },
+                { name: "宫保鸡丁", price: 30 },
+                { name: "麻婆豆腐", price: 20 }
             ],
             order: [],
             goods: [],
@@ -66,7 +142,8 @@ const app = createApp({
                 {
                     img: './img/mapodoufu.jpg'
                 }
-            ]
+            ],
+            input4: ''
         };
     },
     computed: {
@@ -75,6 +152,11 @@ const app = createApp({
         }
     },
     methods: {
+        queryData(){
+            dbUtils.where('goods', 'id', parseInt(this.input4)).then(r => {
+                this.goods = r
+            })
+        },
         handlePreview(file) {
             console.log(file, this.fileList, 777)
         },
@@ -108,7 +190,7 @@ const app = createApp({
         scrollTo(sectionId) {
             const element = document.getElementById(sectionId);
             if (element) {
-                element.scrollIntoView({behavior: "smooth"});
+                element.scrollIntoView({ behavior: "smooth" });
             }
         },
         addToOrder(dish) {
@@ -116,12 +198,17 @@ const app = createApp({
         },
         addItme(ku, data, target) {
             db.open().then(() => {
+                ElMessage({
+                    message: '操作成功!',
+                    type: 'success',
+                })
                 if (data[0].id) {
                     return db[ku].update(data[0].id, data[0]);
 
                 } else {
                     return db[ku].bulkPut(data);
                 }
+                
             }).then(() => {
                 if (target === 'goods') {
                     return db[ku].where('status').equals(this.valueStatus).limit(10).toArray();
@@ -164,16 +251,19 @@ const app = createApp({
                     second: '2-digit',
                     hour12: false,
                 }).replace(/\//g, '-');
-                this.addItme('menu', [{...this.newDish}], 'dishes')
+                this.addItme('menu', [{ ...this.newDish }], 'dishes')
                 this.newDish.name = "";
                 this.newDish.price = null;
                 delete this.newDish.id
             } else {
-                this.$message.error("请填写完整的菜品信息！");
+                ElMessage({
+                    message: '请填写完整的菜品信息！',
+                    type: 'error',
+                })
             }
         },
         updateDialog(data) {
-            this.newDish = {...data}
+            this.newDish = { ...data }
             this.dialogFormVisible = true
         },
         getMenu(ku = 'menu', target = 'dishes') {
@@ -188,7 +278,7 @@ const app = createApp({
                 });
         },
         getGoods(ku = 'menu', target = 'dishes',) {
-
+            this.input4 = ''
             db.open().then(() => {
                 if (this.valueStatus !== 'all') {
                     return db[ku].where('status').equals(this.valueStatus).limit(10).toArray();
@@ -222,12 +312,12 @@ const app = createApp({
                 obj.name += `${element.name}(${element.price}),`
             });
             obj.totalPrice = this.order.reduce((sum, dish) => parseInt(sum) + parseInt(dish.price), 0);
-            this.addItme('goods', [{...obj}], 'goods')
+            this.addItme('goods', [{ ...obj }], 'goods')
             this.order = []
         },
         overOrder(data) {
             data.status = 1
-            this.addItme('goods', [{...data}], 'goods')
+            this.addItme('goods', [{ ...data }], 'goods')
         },
         loginManage() {
             this.count++
@@ -293,6 +383,15 @@ const app = createApp({
         handleRemove(data) {
             console.log(data.name, '删除图片')
             db.images.delete(data.name)
+        },
+        delOrder(id) {
+            dbUtils.delete('menu', id).then((r) => {
+                ElMessage({
+                    message: '操作成功!',
+                    type: 'success',
+                })
+                this.getMenu()
+            })
         }
     },
     mounted() {
@@ -300,11 +399,6 @@ const app = createApp({
         //     message: '这是一条消息',
         //     type: 'success'
         // });
-        db.version(1).stores({
-            menu: '++id,name,price,status,created,dbImg,onlineImg',
-            goods: '++id,name,totalPrice,status,created',
-            images: 'name,data'
-        })
         this.getMenu()
         this.getGoods('goods', 'goods')
         // this.getImageData()
