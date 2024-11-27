@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点单系统</title>
+    <link rel="icon" href="./img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="./css/index.css">
+    <link rel="stylesheet" href="./css/common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <div id="app">
+        <el-container>
+            <!-- 顶部菜单栏 -->
+            <el-header>
+                <h2 style="text-align: center;" class="text-3xl font-bold underline m-3" @click="loginManage">零落闲庭点单系统
+                </h2>
+            </el-header>
+            <el-main>
+                <el-row>
+                    <el-carousel style="width: 90vw; height: 30vh; border-radius: 8px;margin-top: 34px;"
+                        trigger="click">
+                        <el-carousel-item v-for="item in bannerInfo">
+                            <!--                            <img style="width: 90vw; height: 30vh" src="./img/douhuayu.jpg" alt="douhuayu">-->
+                            <div class="banner-box" :style="bannerStyle(item)">
+
+                            </div>
+                        </el-carousel-item>
+                        <!--                        <el-carousel-item>-->
+                        <!--                            <img style="width: 90vw; height: 30vh" src="./img/laziji.jpg" alt="laziji">-->
+                        <!--                        </el-carousel-item>-->
+                        <!--                        <el-carousel-item>-->
+                        <!--                            <img style="width: 90vw; height: 30vh" src="./img/koushuiji.jpg" alt="koushuiji">-->
+                        <!--                        </el-carousel-item>-->
+                        <!--                        <el-carousel-item>-->
+                        <!--                            <img style="width: 90vw; height: 30vh" src="./img/mapodoufu.jpg" alt="mapodoufu">-->
+                        <!--                        </el-carousel-item>-->
+                    </el-carousel>
+                </el-row>
+                <div class="line">
+
+                </div>
+                <el-row>
+                    <!-- 菜品展示区 -->
+                    <el-col :span="24" id="menu">
+                        <h3 class="text-2xl font-bold">菜单</h3>
+                        <el-table style="border-radius: 8px;" :data="dishes" empty-text="没有菜品哟~">
+                            <el-table-column prop="name" label="菜名"></el-table-column>
+                            <el-table-column prop="price" label="价格">
+                                <template #default="scope">
+                                    <div style="display: flex; align-items: center">
+                                        ¥
+                                        <span>{{ scope.row.price }}</span>
+                                        元
+                                    </div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="status" label="状态">
+                                <template #default="scope">
+                                    <el-button size="small" v-if="scope.row.status===false" type="danger"
+                                        round>卖完</el-button>
+                                    <el-button size="small" v-else type="success" round>热卖</el-button>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作">
+                                <template #default="scope">
+                                    <div style="display: flex;flex-direction: column;">
+                                        <el-button :disabled="!scope.row.status"
+                                            style="margin-left: 12px; margin-bottom: 4px" type="primary" size="small"
+                                            @click="addToOrder(scope.row)">选择</el-button>
+                                        <el-button style="margin-left: 12px; margin-bottom: 4px" v-if="isLogin"
+                                            type="primary" size="small" @click="updateDialog(scope.row)">修改</el-button>
+
+                                        <el-popconfirm title="确认操作码？" confirm-button-text="确认" cancel-button-text="取消"
+                                            @confirm="delOrder(scope.row.id)">
+                                            <template #reference>
+                                                <el-button v-if="isLogin" type="warning" size="small">删除</el-button>
+                                            </template>
+                                        </el-popconfirm>
+
+                                    </div>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </el-col>
+                </el-row>
+                <div class="line">
+
+                </div>
+                <!-- 点单区 -->
+                <el-row style="margin-top: 20px;margin-bottom: 40px;">
+                    <el-col :span="24" id="order">
+                        <h3 class="text-2xl font-bold">已点菜品</h3>
+                        <el-table style="border-radius: 8px;" :data="order" empty-text="没有点菜哟~">
+                            <el-table-column prop="name" label="菜名"></el-table-column>
+                            <el-table-column prop="price" label="价格"></el-table-column>
+                            <el-table-column label="操作">
+                                <template #default="scope">
+                                    <el-button type="danger" size="small"
+                                        @click="removeFromOrder(scope.row)">移除</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <p>总价：{{ totalPrice }} 元</p>
+                        <div style="text-align: right;">
+                            <el-button type="danger" @click="order = []">清空</el-button>
+                            <el-popconfirm title="确认操作码？" confirm-button-text="确认" cancel-button-text="取消"
+                                @confirm="sureOrder">
+                                <template #reference>
+                                    <el-button type="success">确认下单</el-button>
+                                </template>
+                            </el-popconfirm>
+                        </div>
+                    </el-col>
+                </el-row>
+                <div class="line">
+                </div>
+                <!-- 定单区 -->
+                <el-row style="margin-top: 20px;margin-bottom: 40px;">
+                    <el-col :span="24" id="goods">
+                        <h3 class="text-2xl font-bold">订单</h3>
+
+                        <div style="display: flex; justify-content: right; align-items: center; margin-bottom: 12px;">
+                            <el-input v-model="input4" style="width:40%;margin-right: 8px;" placeholder="序号" @change="queryData">
+                                <template #prefix>
+                                    <div>
+                                        查询
+                                    </div>
+                                </template>
+                            </el-input>
+                            <el-select v-model="valueStatus" size="small" placeholder="选择查看"
+                                style="width: 100px; margin-right: 8px;" @change="getGoods('goods', 'goods')">
+                                <el-option v-for="item in options" :key="item.value" :label="item.label"
+                                    :value="item.value" />
+                            </el-select>
+                            <!-- v-if="isLogin" -->
+                            <el-button type="primary" size="small"
+                                @click="exportToExcel(goods, '订单表')">导出Excel</el-button>
+                        </div>
+                        <div v-if="goods.length === 0" style="text-align: center;color: #cccccc">
+                            没有订单哟~
+                        </div>
+                        <el-card v-for="o in goods" :key="o" style="margin-bottom: 8px;">
+                            <template #header>
+                                <div class="card-header">
+                                    <span>{{o.name}}</span>
+                                </div>
+                            </template>
+                            <p class="text item">序号: {{ o.id }}</p>
+                            <p class="text item">总价: ¥{{ o.totalPrice }}元</p>
+                            <p class="text item">订餐时间: {{ o.created }}</p>
+                            <p class="text item">状态:
+                                <el-button size="small" v-if="o.status===0" type="danger" round>烹饪中</el-button>
+                                <el-button size="small" v-else type="success" round>完成</el-button>
+                            </p>
+                            <template #footer>
+                                <div style="text-align:right">
+
+                                    <el-popconfirm title="确认操作码？" confirm-button-text="确认" cancel-button-text="取消"
+                                        @confirm="overOrder(o)">
+                                        <template #reference>
+                                            <el-button v-if="o.status===0" type="success" size="small">完成</el-button>
+                                        </template>
+                                    </el-popconfirm>
+                                    <el-popconfirm title="确认操作码？" confirm-button-text="确认" cancel-button-text="取消"
+                                        @confirm="printText(o)">
+                                        <template #reference>
+                                            <el-button v-if="o.status===0" type="primary" size="small">打印</el-button>
+                                        </template>
+                                    </el-popconfirm>
+                                </div>
+                            </template>
+                        </el-card>
+
+                    </el-col>
+                </el-row>
+                <!--                <div class="demo-image__error">-->
+                <!--                    <div class="block">-->
+                <!--                        <span class="demonstration">默认</span>-->
+                <!--                        <el-image :src="srcImg"/>-->
+                <!--                    </div>-->
+                <!--                    <div class="block">-->
+                <!--                        <span class="demonstration">失败</span>-->
+                <!--                        <el-image>-->
+                <!--                            <template #error>-->
+                <!--                                <div class="image-slot">-->
+                <!--                                    <el-image src="./img/douhuayu.jpg" alt="没有图片"/>-->
+                <!--                                </div>-->
+                <!--                            </template>-->
+                <!--                        </el-image>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+                <!--                <el-upload-->
+                <!--                        v-model="fileList"-->
+                <!--                        class="upload-demo"-->
+                <!--                        action= "#"-->
+                <!--                        :on-preview="handlePreview"-->
+                <!--                        :on-remove="handleRemove"-->
+                <!--                        :before-upload="uploadFn"-->
+                <!--                        list-type="picture"-->
+                <!--                >-->
+                <!--                    <el-button type="primary">点击上传</el-button>-->
+                <!--                    <template #tip>-->
+                <!--                        <div class="el-upload__tip">-->
+                <!--                            图片不能超过 500kb-->
+                <!--                        </div>-->
+                <!--                    </template>-->
+                <!--                </el-upload>-->
+                <div style="margin-bottom: 60px;">
+                </div>
+                <el-dialog v-model="dialogVisible">
+                    <img w-full :src="dialogImageUrl" alt="Preview Image" />
+                </el-dialog>
+                <el-row
+                    style="position: fixed; bottom: 0; left: 0; width:100vw; text-align: center; background-color: #f5f5f5; padding: 10px;z-index: 999; display: flex; justify-content: center;">
+                    <el-button-group>
+                        <el-button type="primary" @click="scrollTo('menu')">菜单选菜</el-button>
+                        <el-button type="primary" @click="scrollTo('goods')">
+                            已点订单
+                        </el-button>
+                        <el-badge :value="order.length" class="item" color="green">
+                            <el-button type="primary" @click="scrollTo('order')">
+                                已选菜品
+                            </el-button>
+                        </el-badge>
+                        <el-button v-if="isLogin" type="primary" @click="dialogFormVisible = true">
+                            添加菜品
+                        </el-button>
+                    </el-button-group>
+                </el-row>
+
+                <div style="position: fixed; top: 0; right: 0; text-align: center; padding: 10px;z-index: 999;">
+                    <el-button v-if="isLogin" type="primary" @click="isLogin = false">
+                        退出
+                    </el-button>
+                </div>
+            </el-main>
+            <el-dialog v-model="dialogFormVisible" title="添加菜品" width="80%">
+                <el-form :model="newDish">
+                    <el-form-item label="菜名">
+                        <el-input v-model="newDish.name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="价格">
+                        <el-input v-model="newDish.price" type="number"></el-input>
+                    </el-form-item>
+                    <el-form-item label="上架">
+                        <el-switch v-model="newDish.status" inline-prompt active-text="是" inactive-text="否" />
+                    </el-form-item>
+                </el-form>
+                <template #footer>
+                    <div class="dialog-footer">
+                        <el-button @click="dialogFormVisible = false">取消</el-button>
+                        <el-button type="primary" @click="uploadDish">
+                            确认
+                        </el-button>
+                    </div>
+                </template>
+            </el-dialog>
+        </el-container>
+    </div>
+
+    <!-- Vue 和 Element UI CDN -->
+    <script src="./js/vue.global.js"></script>
+    <script src="./js/index.full.js"></script>
+    <script src="./js/index.iife.min.js"></script>
+    <script src="./js/dexie.js"></script>
+    <script src="./js/xlsx.full.min.js"></script>
+
+    <script src="./js/common.js"></script>
+
+    <script src="./js/index.js"></script>
+</body>
+
+</html>
