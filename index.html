@@ -18,6 +18,17 @@
             <el-header>
                 <h2 style="text-align: center;" class="text-3xl font-bold underline m-3" @click="loginManage">零落闲庭点单系统
                 </h2>
+                <div>
+                    <span>
+                        城市：{{weatherInfo.province || ''}}{{weatherInfo.city || ''}}
+                    </span>
+                    <span>
+                        天气：{{weatherInfo.weather || '无'}} {{weatherInfo.temperature || '无'}}℃
+                    </span>
+                    <span>
+                        湿度：{{weatherInfo.humidity || '无'}}
+                    </span>
+                </div>
             </el-header>
             <el-main>
                 <el-row>
@@ -268,6 +279,7 @@
     <script src="./js/index.iife.min.js"></script>
     <script src="./js/dexie.js"></script>
     <script src="./js/xlsx.full.min.js"></script>
+    <script src="./js/axios.min.js"></script>
 
     <script src="./js/common.js"></script>
 

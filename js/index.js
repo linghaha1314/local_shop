@@ -78,15 +78,15 @@ const dbUtils = {
     },
 };
 
-const { createApp } = Vue;
-const { ElMessage } = ElementPlus;
+const {createApp} = Vue;
+const {ElMessage} = ElementPlus;
 const app = createApp({
     data() {
         return {
             dishes: [
-                { name: "鱼香肉丝", price: 25 },
-                { name: "宫保鸡丁", price: 30 },
-                { name: "麻婆豆腐", price: 20 }
+                {name: "鱼香肉丝", price: 25},
+                {name: "宫保鸡丁", price: 30},
+                {name: "麻婆豆腐", price: 20}
             ],
             order: [],
             goods: [],
@@ -143,7 +143,10 @@ const app = createApp({
                     img: './img/mapodoufu.jpg'
                 }
             ],
-            input4: ''
+            input4: '',
+            keyHe: '2c04e63e94c0443994322e6fbd25abd8',
+            keyGa: '49954499e6e4bf49107289308f0ea316',
+            weatherInfo: {}
         };
     },
     computed: {
@@ -152,7 +155,7 @@ const app = createApp({
         }
     },
     methods: {
-        queryData(){
+        queryData() {
             dbUtils.where('goods', 'id', parseInt(this.input4)).then(r => {
                 this.goods = r
             })
@@ -190,7 +193,7 @@ const app = createApp({
         scrollTo(sectionId) {
             const element = document.getElementById(sectionId);
             if (element) {
-                element.scrollIntoView({ behavior: "smooth" });
+                element.scrollIntoView({behavior: "smooth"});
             }
         },
         addToOrder(dish) {
@@ -208,7 +211,7 @@ const app = createApp({
                 } else {
                     return db[ku].bulkPut(data);
                 }
-                
+
             }).then(() => {
                 if (target === 'goods') {
                     return db[ku].where('status').equals(this.valueStatus).limit(10).toArray();
@@ -251,7 +254,7 @@ const app = createApp({
                     second: '2-digit',
                     hour12: false,
                 }).replace(/\//g, '-');
-                this.addItme('menu', [{ ...this.newDish }], 'dishes')
+                this.addItme('menu', [{...this.newDish}], 'dishes')
                 this.newDish.name = "";
                 this.newDish.price = null;
                 delete this.newDish.id
@@ -263,7 +266,7 @@ const app = createApp({
             }
         },
         updateDialog(data) {
-            this.newDish = { ...data }
+            this.newDish = {...data}
             this.dialogFormVisible = true
         },
         getMenu(ku = 'menu', target = 'dishes') {
@@ -312,12 +315,12 @@ const app = createApp({
                 obj.name += `${element.name}(${element.price}),`
             });
             obj.totalPrice = this.order.reduce((sum, dish) => parseInt(sum) + parseInt(dish.price), 0);
-            this.addItme('goods', [{ ...obj }], 'goods')
+            this.addItme('goods', [{...obj}], 'goods')
             this.order = []
         },
         overOrder(data) {
             data.status = 1
-            this.addItme('goods', [{ ...data }], 'goods')
+            this.addItme('goods', [{...data}], 'goods')
         },
         loginManage() {
             this.count++
@@ -392,6 +395,26 @@ const app = createApp({
                 })
                 this.getMenu()
             })
+        },
+        // 获取天气
+        getWeather() {
+
+            // http://ip-api.com/json/
+            axios.get(`https://restapi.amap.com/v3/ip?key=${this.keyGa}`).then(r => {
+                const location = r.data.adcode
+                axios.get(`https://restapi.amap.com/v3/weather/weatherInfo?city=${location}&key=${this.keyGa}`).then(res => {
+                    if(res.data.status === '1'){
+                        ElMessage.success({
+                            message: '天气获取成功！'
+                        })
+                        this.weatherInfo = res.data.lives[0]
+                    }else{
+                        ElMessage.fail({
+                            message: '无天气信息！'
+                        })
+                    }
+                })
+            })
         }
     },
     mounted() {
@@ -399,8 +422,9 @@ const app = createApp({
         //     message: '这是一条消息',
         //     type: 'success'
         // });
-        this.getMenu()
-        this.getGoods('goods', 'goods')
+        this.getMenu();
+        this.getGoods('goods', 'goods');
+        this.getWeather();
         // this.getImageData()
     },
 }).use(ElementPlus).mount('#app');
