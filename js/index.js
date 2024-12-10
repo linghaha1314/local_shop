@@ -2,7 +2,7 @@ const db = new Dexie('my_database');
 // const XLSX = globalThis.XLSX;
 db.version(1).stores({
     menu: '++id,name,price,status,created,dbImg,onlineImg',
-    goods: '++id,name,totalPrice,status,created',
+    goods: '++id,name,totalPrice,status,created,copyNum,printNum',
     images: 'name,data'
 })
 
@@ -52,8 +52,7 @@ const dbUtils = {
     // 查询单个
     get: async function (tableName, id) {
         try {
-            const item = await db[tableName].get(id);
-            return item;
+            return await db[tableName].get(id);
         } catch (error) {
             console.error("Get failed: ", error);
         }
@@ -61,8 +60,7 @@ const dbUtils = {
     // 条件查询
     where: async function (tableName, field, value) {
         try {
-            const items = await db[tableName].where(field).equals(value).toArray();
-            return items;
+            return await db[tableName].where(field).equals(value).toArray();
         } catch (error) {
             console.error("Where failed: ", error);
         }
@@ -70,8 +68,7 @@ const dbUtils = {
     // 查询所有
     getAll: async function (tableName) {
         try {
-            const items = await db[tableName].toArray();
-            return items;
+            return await db[tableName].toArray();
         } catch (error) {
             console.error("Get all failed: ", error);
         }
@@ -156,9 +153,7 @@ const app = createApp({
     },
     methods: {
         queryData() {
-            dbUtils.where('goods', 'id', parseInt(this.input4)).then(r => {
-                this.goods = r
-            })
+            this.goods = dbUtils.where('goods', 'id', parseInt(this.input4))
         },
         handlePreview(file) {
             console.log(file, this.fileList, 777)
@@ -177,11 +172,10 @@ const app = createApp({
             const file = data;
             if (file) {
                 // 读取文件为Blob
-                const blob = file;
                 // 存储到IndexedDB
                 await db.images.add({
                     name: file.name,
-                    data: blob
+                    data: file
                 });
             }
         },
@@ -363,6 +357,35 @@ const app = createApp({
             newWindow.document.write('</body></html>');
             newWindow.document.close();
             newWindow.print();
+            let num = data.printNum ? parseInt(data.printNum) : 0;
+            data.printNum = num + 1
+            this.addItme('goods', [{...data}], 'goods')
+        },
+        copyText(data){
+            let num = data.copyNum ? parseInt(data.copyNum) : 0;
+            data.copyNum = num + 1
+            const str = `${data.id}、${data.name}`
+            this.fallbackCopyTextToClipboard(str)
+            this.addItme('goods', [{...data}], 'goods')
+        },
+        fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            // 避免文本域在页面上可见
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                const successful = document.execCommand('copy');
+                const msg = successful ? 'successful' : 'unsuccessful';
+                console.log('Fallback: Copying text command was ' + msg);
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+            document.body.removeChild(textArea);
         },
         // updateDish(ku,data,target){
         //     db.open().then(() => {
@@ -378,7 +401,6 @@ const app = createApp({
             db.images.toArray().then(res => {
                 console.log(res, 999)
                 if (res.length !== 0) {
-
                     this.srcImg = URL.createObjectURL(res[0].data)
                 }
             })
@@ -388,7 +410,7 @@ const app = createApp({
             db.images.delete(data.name)
         },
         delOrder(id) {
-            dbUtils.delete('menu', id).then((r) => {
+            dbUtils.delete('menu', id).then(() => {
                 ElMessage({
                     message: '操作成功!',
                     type: 'success',
@@ -415,6 +437,11 @@ const app = createApp({
                     }
                 })
             })
+        },
+        testApi(url){
+            axios.get(url).then(r => {
+                console.log(r, 88)
+            })
         }
     },
     mounted() {
@@ -425,6 +452,7 @@ const app = createApp({
         this.getMenu();
         this.getGoods('goods', 'goods');
         this.getWeather();
+        // this.testApi('https://evilinsult.com/generate_insult.php?lang=cn&type=json');
         // this.getImageData()
     },
 }).use(ElementPlus).mount('#app');

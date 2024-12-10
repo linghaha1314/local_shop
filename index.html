@@ -18,15 +18,15 @@
             <el-header>
                 <h2 style="text-align: center;" class="text-3xl font-bold underline m-3" @click="loginManage">零落闲庭点单系统
                 </h2>
-                <div>
+                <div style="display: flex;justify-content: space-around">
                     <span>
-                        城市：{{weatherInfo.province || ''}}{{weatherInfo.city || ''}}
+                        {{weatherInfo.province || ''}}{{weatherInfo.city || ''}}
                     </span>
                     <span>
                         天气：{{weatherInfo.weather || '无'}} {{weatherInfo.temperature || '无'}}℃
                     </span>
                     <span>
-                        湿度：{{weatherInfo.humidity || '无'}}
+                        湿度：{{weatherInfo.humidity || '无'}}%RH
                     </span>
                 </div>
             </el-header>
@@ -168,18 +168,40 @@
                                 <el-button size="small" v-else type="success" round>完成</el-button>
                             </p>
                             <template #footer>
-                                <div style="text-align:right">
+                                <div style="text-align:right;display: flex;justify-content: space-around;align-items: center">
 
-                                    <el-popconfirm title="确认操作码？" confirm-button-text="确认" cancel-button-text="取消"
-                                        @confirm="overOrder(o)">
-                                        <template #reference>
-                                            <el-button v-if="o.status===0" type="success" size="small">完成</el-button>
-                                        </template>
-                                    </el-popconfirm>
-                                    <el-popconfirm title="确认操作码？" confirm-button-text="确认" cancel-button-text="取消"
+
+                                    <el-popconfirm title="确认操作吗？" confirm-button-text="确认" cancel-button-text="取消"
                                         @confirm="printText(o)">
                                         <template #reference>
-                                            <el-button v-if="o.status===0" type="primary" size="small">打印</el-button>
+                                            <div>
+                                                <el-badge :value="o.printNum" class="item" color="green">
+                                                    <el-button v-if="o.status===0" type="primary" size="small">打印</el-button>
+                                                </el-badge>
+                                            </div>
+                                        </template>
+                                    </el-popconfirm>
+                                    <el-popconfirm title="确认操作吗？" confirm-button-text="确认" cancel-button-text="取消"
+                                                   @confirm="copyText(o)">
+                                        <template #reference>
+
+                                            <div>
+                                                <el-badge :value="o.copyNum" class="item" color="green">
+                                                    <el-button v-if="o.status===0" type="primary" size="small">复制</el-button>
+                                                </el-badge>
+                                            </div>
+                                        </template>
+                                    </el-popconfirm>
+
+                                    <el-popconfirm v-if="o.status===0"  title="确认操作吗？" confirm-button-text="确认" cancel-button-text="取消"
+                                                   @confirm="overOrder(o)">
+                                        <template #reference>
+                                            <div>
+                                                <el-badge value="👌" class="item" color="green">
+                                                    <el-button type="success" size="small">完成</el-button>
+                                                </el-badge>
+                                            </div>
+
                                         </template>
                                     </el-popconfirm>
                                 </div>
